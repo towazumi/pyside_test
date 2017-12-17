@@ -1,12 +1,12 @@
 # coding:utf-8 
 
-from Qt import QtGui, QtWidgets, QtCore
+from PySide.QtGui import *
 
-class SimpleOutputWidget(QtWidgets.QTextEdit):
+class SimpleOutputWidget(QTextEdit):
     """ シンプルな出力ウィンドウ用ウィジェット """
 
     def __init__(self, parent=None):
-        QtWidgets.QTextEdit.__init__(self,parent)
+        QTextEdit.__init__(self,parent)
         self.setReadOnly(True)
 
     def appendText(self, text):
@@ -14,7 +14,7 @@ class SimpleOutputWidget(QtWidgets.QTextEdit):
             text += '\n' 
 
         cursor = self.textCursor()
-        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.movePosition(QTextCursor.End)
         cursor.insertText(text)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()

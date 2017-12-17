@@ -1,7 +1,7 @@
 # coding:utf-8 
 
 from logging import Handler
-from Qt.QtCore import Signal,QObject
+from PySide.QtCore import Signal,QObject
 
 class SignalWrapper(QObject):
     """ SignalLogHandlerに渡すためのSignalのラッパー """

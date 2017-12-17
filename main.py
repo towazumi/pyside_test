@@ -7,10 +7,12 @@ import json
 import logging
 import logging.config
 
-from Qt import QtGui, QtWidgets, QtCore
+from PySide.QtCore import *
+from PySide.QtGui import *
 
 from log import SignalLogHandler
-from widgets import SimpleOutputWidget
+from widgets import SimpleOutputWidget, TreeModel, TreeItem
+
 
 def get_style(style_name):
     """ スタイルのファイル内容を取得 """
@@ -24,17 +26,71 @@ def get_style(style_name):
         style = ''
     return style
 
-class TestWindow(QtWidgets.QMainWindow):
+class TestBaseItem(TreeItem):
+
+    HEADER_ITEMS = (u'名前',u'値')
+
+    def __init__(self, parent):
+        TreeItem.__init__(self,parent)
+
+    def columnCount(self):
+        return len(self.HEADER_ITEMS)
+
+    def headerData(self,column):
+        return self.HEADER_ITEMS[column]
+
+class GroupItem(TestBaseItem):
+
+    def __init__(self, parent, name):
+        TestBaseItem.__init__(self, parent)
+        self.name = name
+
+    def data(self, column):
+        if 0==column:
+            return self.name
+        else:
+            return None
+
+class TestItem(TestBaseItem):
+    def __init__(self, parent, name, value):
+        TestBaseItem.__init__(self,parent)
+        self.name = name
+        self.value = value
+
+    def data(self,column):
+        if 0==column:
+            return self.name
+        elif 1==column:
+            return self.value
+        else:
+            None
+
+
+class TestWindow(QMainWindow):
     """ テストウィンドウ """
 
     def __init__(self, parent=None):
-        QtWidgets.QMainWindow.__init__(self,parent)
+        QMainWindow.__init__(self,parent)
 
-        # 出力ウィンドウ
-        outputDock = QtWidgets.QDockWidget(u'出力ウィンドウ', self)
+        # ツリービュー
+        treeView = QTreeView(self)
+        treeModel = TreeModel(treeView)
+        treeView.setModel(treeModel)
+        group = GroupItem( treeModel.root, u'テストグループ' )
+        TestItem(group, u'テスト', 3)
+        self.setCentralWidget(treeView)
+
+        # 履歴
+        historyDock = QDockWidget(u'履歴', self)
+        historyView = QUndoView(historyDock)
+        historyDock.setWidget(historyView)
+        self.addDockWidget(Qt.RightDockWidgetArea, historyDock)
+    
+        # 出力
+        outputDock = QDockWidget(u'出力', self)
         outputWidget = SimpleOutputWidget(outputDock)
         outputDock.setWidget(outputWidget)
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, outputDock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, outputDock)
 
         SignalLogHandler.connect(outputWidget.appendText)
 
@@ -55,7 +111,7 @@ def main():
     logger.critical('critical message')
 
     # アプリケーション
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     app.setStyleSheet(get_style('dark'))
     
     windowA = TestWindow()
@@ -67,6 +123,7 @@ def main():
     logger.debug('test')
 
     sys.exit(app.exec_())
+
 
 if __name__=='__main__':
     main()
