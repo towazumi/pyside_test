@@ -100,5 +100,8 @@ ENV/
 # mypy
 .mypy_cache/
 
+# VSCode
+*.code-workspace
+
 # native/build
 native/build/
