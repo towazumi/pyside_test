@@ -12,7 +12,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from log import SignalLogHandler
-from widgets import SimpleOutputWidget, TreeModel, TreeItem, TreeView
+from widgets import SimpleOutputWidget, MainWindowBase, TreeModel, TreeItem, TreeView
 
 class OutputCapture(QObject):
     emitter = Signal(str)
@@ -98,23 +98,12 @@ class TestItem(TestBaseItem):
         self.value = value
         self.test = Test(1,2)
 
-def createAction(parent, text, triggered=None, shortcut=None, icon=None, tip=None):
-    action = QAction(text, parent)
-    if triggered is not None:
-        action.triggered.connect(triggered)
-    if shortcut is not None:
-        action.setShortcut(shortcut)
-    if icon is not None:
-        action.setIcon(QIcon(':/{0}.png'.format(icon)))
-    if tip is not None:
-        action.setToolTip(tip)
-        action.setStatusTip(tip)
-    return action
-
-class TestWindow(QMainWindow):
+class TestWindow(MainWindowBase):
     """ テストウィンドウ """
 
     def __init__(self, parent=None):
+        MainWindowBase.__init__(self,parent)
+        
         self.__filename = None
 
         self.proto_types = dict(
@@ -122,22 +111,19 @@ class TestWindow(QMainWindow):
             TestItem = TestItem()
         )
 
-        QMainWindow.__init__(self,parent)
-
-        openAction = createAction(self,
+        openAction = self.createAction(
             text='Open',
             triggered=self.openFile,
             shortcut='Ctrl+O',
             tip='Open file'
         )
-        saveAction = createAction(self,
+        saveAction = self.createAction(
             text='Save As',
             triggered=self.saveFile,
             shortcut='Ctrl+S',
             tip='Save file'
         )
-
-        saveAsAction = createAction(self,
+        saveAsAction = self.createAction(
             text='Save As',
             triggered=self.saveFileAs,
             shortcut='Ctrl+Shift+S',
@@ -165,17 +151,10 @@ class TestWindow(QMainWindow):
         self.treeModel = treeModel
 
         # 履歴
-        historyDock = QDockWidget(u'履歴', self)
-        historyView = QUndoView(historyDock)
-        historyDock.setWidget(historyView)
-        self.addDockWidget(Qt.RightDockWidgetArea, historyDock)
+        self.createDockWidget( QUndoView, u'履歴', Qt.RightDockWidgetArea)
     
         # 出力
-        outputDock = QDockWidget(u'出力', self)
-        outputWidget = SimpleOutputWidget(outputDock)
-        outputDock.setWidget(outputWidget)
-        self.addDockWidget(Qt.BottomDockWidgetArea, outputDock)
-
+        outputWidget = self.createDockWidget(SimpleOutputWidget, u'出力', Qt.BottomDockWidgetArea)
         SignalLogHandler.connect(outputWidget.appendText)
 
     def openFile(self):
